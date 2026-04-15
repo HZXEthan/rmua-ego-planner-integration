@@ -1,0 +1,63 @@
+pcd_map_publisher:
+  frame_id: world
+  publish_rate_hz: 1.0
+  voxel_leaf_size: 0.50
+  clear_origin_radius: 1.5
+  clear_origin_min_z: -1.0
+  clear_origin_max_z: 2.0
+  min_z: -0.5
+  max_z: 8.0
+
+path_to_vel_cmd:
+  odom_topic: /eskf_odom
+  path_topic: /planning/path
+  cmd_topic: /airsim_node/drone_1/vel_body_cmd
+  control_rate_hz: 20.0
+  waypoint_tolerance: 0.5
+  lookahead_points: 3
+  kp_xy: 0.8
+  kp_z: 0.8
+  kp_yaw: 1.5
+  max_vx: 2.5
+  max_vy: 2.5
+  max_vz: 1.2
+  max_yaw_rate: 1.0
+  final_stop_tolerance: 0.3
+  cmd_acc: 6
+
+position_cmd_to_vel_cmd:
+  odom_topic: /eskf_odom
+  pos_cmd_topic: /planning/pos_cmd
+  vel_cmd_topic: /airsim_node/drone_1/vel_body_cmd
+  use_fixed_altitude: true
+  cruise_z: 1.5
+  kp_pos_xy: 0.22
+  kp_pos_z: 0.18
+  kp_yaw: 0.45
+  kd_vel_xy: 0.45
+  kd_vel_z: 0.60
+  max_vx: 0.8
+  max_vy: 0.8
+  max_vz: 0.25
+  max_yaw_rate: 0.25
+  max_delta_vxy: 0.05
+  max_delta_vz: 0.025
+  max_delta_yaw_rate: 0.02
+  cmd_lpf_alpha: 0.2
+  cmd_acc: 2
+  min_safe_z: 0.8
+  climb_boost_vz: 0.25
+  allow_descend_above_z: 1.2
+
+goal_segmenter:
+  odom_topic: /eskf_odom
+  input_goal_topic: /move_base_simple/goal
+  output_goal_topic: /planning/segmented_goal
+  segment_length: 8.0
+  lookahead_distance: 10.0
+  reach_tolerance: 1.5
+  min_goal_z: 1.5
+  publish_rate_hz: 10.0
+  smoothing_alpha: 0.25
+  final_approach_radius: 5.0
+  progress_margin: 0.5

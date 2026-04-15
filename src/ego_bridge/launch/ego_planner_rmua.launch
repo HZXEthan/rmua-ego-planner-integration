@@ -1,0 +1,82 @@
+<launch>
+  <arg name="pcd_path" default="/home/aaaalien/rmua_ws/scans.pcd"/>
+  <arg name="frame_id" default="world"/>
+  <arg name="odom_topic" default="/eskf_odom"/>
+  <arg name="cloud_topic" default="/map_generator/global_cloud"/>
+  <arg name="goal_topic" default="/airsim_node/end_goal"/>
+  <arg name="cmd_topic" default="/airsim_node/drone_1/vel_body_cmd"/>
+
+  <arg name="map_size_x" default="120.0"/>
+  <arg name="map_size_y" default="120.0"/>
+  <arg name="map_size_z" default="12.0"/>
+  <arg name="max_vel" default="3.0"/>
+  <arg name="max_acc" default="2.0"/>
+  <arg name="planning_horizon" default="10.0"/>
+
+  <rosparam command="load" file="$(find ego_bridge)/config/ego_bridge.yaml"/>
+
+  <node pkg="imu_gps_odometry" type="imu_gps_odometry" name="imu_gps_odometry" output="screen"/>
+
+  <node pkg="ego_bridge" type="pcd_map_publisher" name="pcd_map_publisher" output="screen">
+    <param name="pcd_path" value="$(arg pcd_path)"/>
+    <param name="frame_id" value="$(arg frame_id)"/>
+  </node>
+
+  <include file="$(find ego_planner)/launch/advanced_param.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)"/>
+    <arg name="map_size_y_" value="$(arg map_size_y)"/>
+    <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    <arg name="odometry_topic" value="$(arg odom_topic)"/>
+    <arg name="camera_pose_topic" value="/unused_camera_pose"/>
+    <arg name="depth_topic" value="/unused_depth"/>
+    <arg name="cloud_topic" value="$(arg cloud_topic)"/>
+    <arg name="cx" value="321.0"/>
+    <arg name="cy" value="243.0"/>
+    <arg name="fx" value="387.0"/>
+    <arg name="fy" value="387.0"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="max_acc" value="$(arg max_acc)"/>
+    <arg name="planning_horizon" value="$(arg planning_horizon)"/>
+    <arg name="flight_type" value="1"/>
+    <arg name="point_num" value="1"/>
+    <arg name="point0_x" value="0.0"/>
+    <arg name="point0_y" value="0.0"/>
+    <arg name="point0_z" value="1.0"/>
+    <arg name="point1_x" value="0.0"/>
+    <arg name="point1_y" value="0.0"/>
+    <arg name="point1_z" value="1.0"/>
+    <arg name="point2_x" value="0.0"/>
+    <arg name="point2_y" value="0.0"/>
+    <arg name="point2_z" value="1.0"/>
+    <arg name="point3_x" value="0.0"/>
+    <arg name="point3_y" value="0.0"/>
+    <arg name="point3_z" value="1.0"/>
+    <arg name="point4_x" value="0.0"/>
+    <arg name="point4_y" value="0.0"/>
+    <arg name="point4_z" value="1.0"/>
+  </include>
+
+  <node pkg="ego_planner" name="traj_server" type="traj_server" output="screen">
+    <remap from="/position_cmd" to="/planning/pos_cmd"/>
+    <remap from="/odom_world" to="$(arg odom_topic)"/>
+    <param name="traj_server/time_forward" value="1.0" type="double"/>
+  </node>
+
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~odom" to="$(arg odom_topic)"/>
+    <remap from="~goal" to="/move_base_simple/goal"/>
+    <remap from="~traj_start_trigger" to="/traj_start_trigger"/>
+    <param name="waypoint_type" value="manual-lonely-waypoint"/>
+  </node>
+
+  <node pkg="ego_bridge" type="goal_relay" name="goal_relay" output="screen">
+    <param name="input_topic" value="$(arg goal_topic)"/>
+    <param name="output_topic" value="/move_base_simple/goal"/>
+  </node>
+
+  <node pkg="ego_bridge" type="position_cmd_to_vel_cmd" name="position_cmd_to_vel_cmd" output="screen">
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="pos_cmd_topic" value="/planning/pos_cmd"/>
+    <param name="vel_cmd_topic" value="$(arg cmd_topic)"/>
+  </node>
+</launch>
